@@ -1,6 +1,8 @@
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
+
+//https://www.montlimart.com/101-t-shirts
 /**
  * Parse webpage e-shop
  * @param  {String} data - html response
@@ -9,24 +11,27 @@ const cheerio = require('cheerio');
 const parse = data => {
   const $ = cheerio.load(data);
 
-  return $('.productList-container .productList')
+  const products = $('.products-list .product-miniature')
     .map((i, element) => {
       const name = $(element)
-        .find('.productList-title')
+        .find('.product-miniature__title a')
         .text()
-        .trim()
-        .replace(/\s/g, ' ');
-      const price = parseInt(
+        .trim();
+      const price = parseFloat(
         $(element)
-          .find('.productList-price')
+          .find('.product-miniature__pricing .price')
           .text()
-      );
-      const link = "https://www.dedicatedbrand.com" + $(element)
-        .find('.productList-link').attr("href");
-      const brand = "Dedicated";
-      return {name, price,link,brand};
+          .replace(/[^0-9.,]/g, '')
+          .replace(',', '.'));
+    const link =  $(element)
+          .find('.text-reset').attr("href");
+    const brand = "MontLimart";
+
+      return {name, price, link , brand};
     })
     .get();
+
+  return products;
 };
 
 /**
@@ -52,3 +57,4 @@ module.exports.scrape = async url => {
     return null;
   }
 };
+
