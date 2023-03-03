@@ -1,6 +1,18 @@
 const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
+const parseurl = data => {
+  const $ = cheerio.load(data);
+
+  return $('.mainNavigation-fixedContainer .mainNavigation-link-subMenu-link')
+    .map((i, element) => {
+      const url = "https://www.dedicatedbrand.com" + $(element).children('a').attr("href");
+      return {url};
+    })
+    .get();
+};
+
+
 /**
  * Parse webpage e-shop
  * @param  {String} data - html response
@@ -24,7 +36,10 @@ const parse = data => {
       const link = "https://www.dedicatedbrand.com" + $(element)
         .find('.productList-link').attr("href");
       const brand = "Dedicated";
-      return {name, price,link,brand};
+      const scrapdate = new Date();
+      const image = $(element)
+      .find('.productList-image').children("img").attr("src");
+      return {name, price,link,brand,scrapdate,image};
     })
     .get();
 };
@@ -38,10 +53,20 @@ module.exports.scrape = async url => {
   try {
     const response = await fetch(url);
 
+
     if (response.ok) {
       const body = await response.text();
+      const Urls = await parseurl(body);
+      let allProducts = [];
+      for (const urlObject of Urls) {
+        const response = await fetch(urlObject.url);
+        const body = await response.text();
+        Product = parse(body);
+        allProducts = [...allProducts, ...Product];
+      }
 
-      return parse(body);
+
+      return allProducts;
     }
 
     console.error(response);

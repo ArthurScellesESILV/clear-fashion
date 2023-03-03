@@ -2,7 +2,18 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
 
-//https://www.montlimart.com/101-t-shirts
+const parseurl = data => {
+  const $ = cheerio.load(data);
+
+  return $('.container .li-niveau1  ')
+    .map((i, element) => {
+      const url = $(element).find('.a-niveau1').attr("href");
+      return {url};
+    })
+    .get();
+};
+
+
 /**
  * Parse webpage e-shop
  * @param  {String} data - html response
@@ -26,8 +37,10 @@ const parse = data => {
     const link =  $(element)
           .find('.text-reset').attr("href");
     const brand = "MontLimart";
+    const scrapdate = new Date();
+  
 
-      return {name, price, link , brand};
+      return {name, price, link , brand,scrapdate};
     })
     .get();
 
@@ -45,8 +58,16 @@ module.exports.scrape = async url => {
 
     if (response.ok) {
       const body = await response.text();
+      const filteredUrls = parseurl(body).filter(item => item.url);
+      let allProducts = [];
+      for (const urlObject of filteredUrls) {
+        const response = await fetch(urlObject.url);
+        const body = await response.text();
+        Product = parse(body);
+        allProducts = [...allProducts, ...Product];
+      }
 
-      return parse(body);
+      return allProducts ;
     }
 
     console.error(response);

@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 
 
-//https://www.montlimart.com/101-t-shirts
+
 /**
  * Parse webpage e-shop
  * @param  {String} data - html response
@@ -30,9 +30,10 @@ const parse = data => {
     const link =  "https://shop.circlesportswear.com" + $(element)
           .find('.full-unstyled-link').attr("href");
     const brand = "Circlesportswear";
+    const scrapdate = new Date();
   
 
-      return {name, price, link , brand};
+      return {name, price, link , brand,scrapdate};
     })
     .get();
 
